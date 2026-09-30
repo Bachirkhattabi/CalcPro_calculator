@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalcPro — Professional Scientific Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        themeBg: 'var(--bg-main)',
+                        cardBg: 'var(--bg-card)',
+                        cardBorder: 'var(--border-card)',
+                        displayBg: 'var(--bg-display)',
+                        btnNum: 'var(--btn-num)',
+                        btnNumHover: 'var(--btn-num-hover)',
+                        btnOp: 'var(--btn-op)',
+                        btnOpHover: 'var(--btn-op-hover)',
+                        btnFunc: 'var(--btn-func)',
+                        btnFuncHover: 'var(--btn-func-hover)',
+                        accent: 'var(--accent)',
+                        accentHover: 'var(--accent-hover)',
+                        accentGlow: 'var(--accent-glow)',
+                        textPrimary: 'var(--text-primary)',
+                        textSecondary: 'var(--text-secondary)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            /* Default: Obsidian Theme */
+            --bg-main: #0b0d11;
+            --bg-card: rgba(22, 26, 35, 0.85);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --bg-display: rgba(13, 15, 20, 0.7);
+            --btn-num: #1b202c;
+            --btn-num-hover: #262d3e;
+            --btn-op: #2d1f3f;
+            --btn-op-hover: #3d2b56;
+            --btn-func: #1e2638;
+            --btn-func-hover: #2a354d;
+            --accent: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --accent-glow: rgba(139, 92, 246, 0.35);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+        }
+
+        .theme-midnight {
+            --bg-main: #070e17;
+            --bg-card: rgba(15, 25, 42, 0.85);
+            --border-card: rgba(56, 189, 248, 0.12);
+            --bg-display: rgba(10, 17, 30, 0.8);
+            --btn-num: #132238;
+            --btn-num-hover: #1d3352;
+            --btn-op: #0f3854;
+            --btn-op-hover: #164d73;
+            --btn-func: #172c47;
+            --btn-func-hover: #223f66;
+            --accent: #38bdf8;
+            --accent-hover: #0284c7;
+            --accent-glow: rgba(56, 189, 248, 0.35);
+            --text-primary: #f0f9ff;
+            --text-secondary: #7dd3fc;
+        }
+
+        .theme-cyber {
+            --bg-main: #0d0a14;
+            --bg-card: rgba(28, 18, 41, 0.85);
+            --border-card: rgba(244, 63, 94, 0.15);
+            --bg-display: rgba(18, 11, 26, 0.8);
+            --btn-num: #231633;
+            --btn-num-hover: #33204a;
+            --btn-op: #4c1132;
+            --btn-op-hover: #661844;
+            --btn-func: #2e1d44;
+            --btn-func-hover: #40295e;
+            --accent: #f43f5e;
+            --accent-hover: #e11d48;
+            --accent-glow: rgba(244, 63, 94, 0.38);
+            --text-primary: #fff1f2;
+            --text-secondary: #fda4af;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.4s ease;
+        }
+
+        .glass-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-card);
+        }
+
+        .btn-calc {
+            transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .btn-calc:active, .btn-calc.keyboard-active {
+            transform: scale(0.94);
+            filter: brightness(1.25);
+        }
+
+        .accent-shadow {
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .toast-enter {
+            animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-3 md:p-6 overflow-x-hidden selection:bg-purple-500/30">
+
+    <!-- Ambient Gradient Background Shapes -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/2 -right-40 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-rose-600/10 rounded-full blur-3xl"></div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="relative z-10 w-full max-w-5xl flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-6 my-auto">
+        
+        <!-- CALCULATOR MAIN CARD -->
+        <div class="w-full max-w-md glass-panel rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col justify-between transition-all duration-300">
+            
+            <!-- HEADER / BRANDING & CONTROLS -->
+            <header class="flex items-center justify-between pb-4 border-b border-white/5">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-accent flex items-center justify-center font-bold text-white text-sm shadow-md">
+                        P
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-base tracking-wide text-textPrimary leading-none">CalcPro</h1>
+                        <span class="text-[10px] font-medium tracking-wider uppercase text-textSecondary">Precision Engine</span>
+                    </div>
+                </div>
+
+                <!-- Controls: Audio, Scientific Switch, Theme Picker, History Toggle -->
+                <div class="flex items-center gap-1">
+                    <!-- Audio Toggle -->
+                    <button id="soundToggleBtn" title="Toggle Button Audio" class="p-2 rounded-xl hover:bg-white/5 text-textSecondary hover:text-textPrimary transition-colors">
+                        <svg id="soundOnIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                        <svg id="soundOffIcon" class="w-4 h-4 hidden opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+                    </button>
+
+                    <!-- Scientific Mode Toggle Button -->
+                    <button id="sciToggleBtn" title="Toggle Scientific Operators" class="px-2.5 py-1 text-xs font-semibold rounded-xl bg-btnFunc hover:bg-btnFuncHover text-textSecondary hover:text-textPrimary transition-colors border border-white/5">
+                        Sci
+                    </button>
+
+                    <!-- Theme Switcher Menu -->
+                    <div class="relative">
+                        <button id="themeBtn" title="Change Visual Theme" class="p-2 rounded-xl hover:bg-white/5 text-textSecondary hover:text-textPrimary transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
+                        </button>
+                        <!-- Dropdown -->
+                        <div id="themeDropdown" class="hidden absolute right-0 mt-2 w-36 glass-panel rounded-2xl shadow-xl py-1 z-50 border border-white/10 text-xs">
+                            <button onclick="setTheme('obsidian')" class="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center justify-between">
+                                <span>Obsidian</span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                            </button>
+                            <button onclick="setTheme('midnight')" class="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center justify-between">
+                                <span>Midnight</span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+                            </button>
+                            <button onclick="setTheme('cyber')" class="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center justify-between">
+                                <span>Cyber Neon</span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mobile History Toggle -->
+                    <button id="historyToggleBtn" title="View History" class="lg:hidden p-2 rounded-xl hover:bg-white/5 text-textSecondary hover:text-textPrimary transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- DUAL DISPLAY PANEL -->
+            <div class="my-5 p-4 rounded-2xl bg-displayBg border border-white/5 flex flex-col justify-between min-h-[120px] transition-all">
+                <!-- Expression Line -->
+                <div id="expressionDisplay" class="text-right text-textSecondary text-sm md:text-base font-mono overflow-x-auto whitespace-nowrap scrollbar-none min-h-[24px] tracking-wide">
+                    0
+                </div>
+                <!-- Dynamic Live Preview or Final Result -->
+                <div id="resultDisplay" class="text-right text-textPrimary text-3xl md:text-4xl font-bold font-mono overflow-x-auto whitespace-nowrap scrollbar-none tracking-tight mt-1 transition-all">
+                    0
+                </div>
+            </div>
+
+            <!-- EXTENDED SCIENTIFIC PANEL (Expandable) -->
+            <div id="sciPanel" class="hidden grid grid-cols-5 gap-2 mb-3 transition-all duration-300">
+                <button onclick="inputSci('^')" class="btn-calc p-2.5 text-xs font-semibold rounded-xl bg-btnFunc hover:bg-btnFuncHover text-textPrimary border border-white/5">x&#7510;</button>
+                <button onclick="inputSci('√(')" class="btn-calc p-2.5 text-xs font-semibold rounded-xl bg-btnFunc hover:bg-btnFuncHover text-textPrimary border border-white/5">&radic;x</button>
+                <button onclick="inputSci('^2')" class="btn-calc p-2.5 text-xs font-semibold rounded-xl bg-btnFunc hover:bg-btnFuncHover text-textPrimary border border-white/5">x&sup2;</button>
+                <button onclick="inputSci('π')" class="btn-calc p-2.5 text-xs font-semibold rounded-xl bg-btnFunc hover:bg-btnFuncHover text-textPrimary border border-white/5">&pi;</button>
+                <button onclick="inputSci('e')" class="btn-calc p-2.5 text-xs font-semibold rounded-xl bg-btnFunc hover:bg-btnFuncHover text-textPrimary border border-white/5">e</button>
+            </div>
+
+            <!-- MAIN CALCULATOR KEYPAD -->
+            <div class="grid grid-cols-4 gap-2.5">
+                <!-- Row 1 -->
+                <button onclick="handleClear()" class="btn-calc py-3.5 text-sm md:text-base font-bold rounded-2xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/20">AC</button>
+                <button onclick="inputOp('(')" class="btn-calc py-3.5 text-sm md:text-base font-medium rounded-2xl bg-btnFunc hover:bg-btnFuncHover text-textPrimary border border-white/5">(</button>
+                <button onclick="inputOp(')')" class="btn-calc py-3.5 text-sm md:text-base font-medium rounded-2xl bg-btnFunc hover:bg-btnFuncHover text-textPrimary border border-white/5">)</button>
+                <button onclick="inputOp('÷')" class="btn-calc py-3.5 text-sm md:text-base font-bold rounded-2xl bg-btnOp hover:bg-btnOpHover text-accent border border-white/5">&divide;</button>
+
+                <!-- Row 2 -->
+                <button onclick="inputNum('7')" class="btn-calc py-3.5 text-base md:text-lg font-semibold rounded-2xl bg-btnNum hover:bg-btnNumHover text-textPrimary border border-white/5">7</button>
+                <button onclick="inputNum('8')" class="btn-calc py-3.5 text-base md:text-lg font-semibold rounded-2xl bg-btnNum hover:bg-btnNumHover text-textPrimary border border-white/5">8</button>
+                <button onclick="inputNum('9')" class="btn-calc py-3.5 text-base md:text-lg font-semibold rounded-2xl bg-btnNum hover:bg-btnNumHover text-textPrimary border border-white/5">9</button>
+                <button onclick="inputOp('×')" class="btn-calc py-3.5 text-sm md:text-base font-bold rounded-2xl bg-btnOp hover:bg-btnOpHover text-accent border border-white/5">&times;</button>
+
+                <!-- Row 3 -->
+                <button onclick="inputNum('4')" class="btn-calc py-3.5 text-base md:text-lg font-semibold rounded-2xl bg-btnNum hover:bg-btnNumHover text-textPrimary border border-white/5">4</button>
+                <button onclick="inputNum('5')" class="btn-calc py-3.5 text-base md:text-lg font-semibold rounded-2xl bg-btnNum hover:bg-btnNumHover text-textPrimary border border-white/5">5</button>
+                <button onclick="inputNum('6')" class="btn-calc py-3.5 text-base md:text-lg font-semibold rounded-2xl bg-btnNum hover:bg-btnNumHover text-textPrimary border border-white/5">6</button>
+                <button onclick="inputOp('-')" class="btn-calc py-3.5 text-sm md:text-base font-bold rounded-2xl bg-btnOp hover:bg-btnOpHover text-accent border border-white/5">&minus;</button>
+
+                <!-- Row 4 -->
+                <button onclick="inputNum('1')" class="btn-calc py-3.5 text-base md:text-lg font-semibold rounded-2xl bg-btnNum hover:bg-btnNumHover text-textPrimary border border-white/5">1</button>
+                <button onclick="inputNum('2')" class="btn-calc py-3.5 text-base md:text-lg font-semibold rounded-2xl bg-btnNum hover:bg-btnNumHover text-textPrimary border border-white/5">2</button>
+                <button onclick="inputNum('3')" class="btn-calc py-3.5 text-base md:text-lg font-semibold rounded-2xl bg-btnNum hover:bg-btnNumHover text-textPrimary border border-white/5">3</button>
+                <button onclick="inputOp('+')" class="btn-calc py-3.5 text-sm md:text-base font-bold rounded-2xl bg-btnOp hover:bg-btnOpHover text-accent border border-white/5">&#43;</button>
+
+                <!-- Row 5 -->
+                <button onclick="toggleSign()" class="btn-calc py-3.5 text-sm md:text-base font-medium rounded-2xl bg-btnFunc hover:bg-btnFuncHover text-textPrimary border border-white/5">&plusmn;</button>
+                <button onclick="inputNum('0')" class="btn-calc py-3.5 text-base md:text-lg font-semibold rounded-2xl bg-btnNum hover:bg-btnNumHover text-textPrimary border border-white/5">0</button>
+                <button onclick="inputDot()" class="btn-calc py-3.5 text-base md:text-lg font-bold rounded-2xl bg-btnNum hover:bg-btnNumHover text-textPrimary border border-white/5">.</button>
+                <button onclick="inputOp('%')" class="btn-calc py-3.5 text-sm md:text-base font-medium rounded-2xl bg-btnFunc hover:bg-btnFuncHover text-textPrimary border border-white/5">%</button>
+
+                <!-- Row 6 (Backspace & Equals) -->
+                <button onclick="handleBackspace()" title="Backspace" class="btn-calc py-3.5 text-sm md:text-base font-medium rounded-2xl bg-btnFunc hover:bg-btnFuncHover text-textPrimary border border-white/5 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-9.172a2 2 0 00-1.414.586L3 12z"></path></svg>
+                </button>
+                <button onclick="calculateResult()" class="btn-calc col-span-3 py-3.5 text-lg md:text-xl font-bold rounded-2xl bg-accent hover:bg-accentHover text-white accent-shadow border border-white/10">
+                    &#61;
+                </button>
+            </div>
+        </div>
+
+        <!-- HISTORY SIDE PANEL (Desktop & Collapsible Mobile Overlay) -->
+        <aside id="historyPanel" class="w-full lg:w-80 glass-panel rounded-3xl p-5 shadow-2xl flex flex-col justify-between hidden lg:flex transition-all duration-300 min-h-[480px]">
+            <div>
+                <div class="flex items-center justify-between pb-3 border-b border-white/5">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h2 class="font-bold text-sm tracking-wide text-textPrimary">Calculation History</h2>
+                    </div>
+                    <button onclick="clearHistory()" title="Clear All History" class="text-xs text-textSecondary hover:text-rose-400 transition-colors px-2 py-1 rounded-lg hover:bg-white/5">
+                        Clear
+                    </button>
+                </div>
+
+                <!-- History Items List -->
+                <div id="historyList" class="mt-4 space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                    <!-- Dynamic rendering target -->
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-white/5 text-[11px] text-textSecondary text-center">
+                Click any history item to insert expression into calculation display.
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- Notification Toast Container -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 hidden glass-panel px-4 py-3 rounded-2xl border border-white/10 shadow-2xl text-xs font-medium text-textPrimary flex items-center gap-2">
+        <span id="toastMsg">Action completed</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC ENGINE -->
+    <script>
+        // State variables
+        let expression = '';
+        let history = [];
+        let isAudioEnabled = true;
+        let isEvaluated = false;
+
+        // Web Audio API Setup
+        let audioCtx = null;
+
+        function playClickSound(freq = 600, type = 'sine') {
+            if (!isAudioEnabled) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            } catch(e) {}
+        }
+
+        // DOM Elements
+        const exprEl = document.getElementById('expressionDisplay');
+        const resEl = document.getElementById('resultDisplay');
+        const historyListEl = document.getElementById('historyList');
+        const themeDropdown = document.getElementById('themeDropdown');
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            loadHistory();
+            updateDisplay();
+            
+            // Audio toggle button listener
+            document.getElementById('soundToggleBtn').addEventListener('click', () => {
+                isAudioEnabled = !isAudioEnabled;
+                document.getElementById('soundOnIcon').classList.toggle('hidden', !isAudioEnabled);
+                document.getElementById('soundOffIcon').classList.toggle('hidden', isAudioEnabled);
+                showToast(isAudioEnabled ? "Audio feedback enabled" : "Audio feedback muted");
+            });
+
+            // Scientific panel toggle
+            document.getElementById('sciToggleBtn').addEventListener('click', () => {
+                const sciPanel = document.getElementById('sciPanel');
+                sciPanel.classList.toggle('hidden');
+                document.getElementById('sciToggleBtn').classList.toggle('bg-accent');
+                document.getElementById('sciToggleBtn').classList.toggle('text-white');
+            });
+
+            // Mobile history drawer toggle
+            document.getElementById('historyToggleBtn').addEventListener('click', () => {
+                const historyPanel = document.getElementById('historyPanel');
+                historyPanel.classList.toggle('hidden');
+            });
+
+            // Theme button listener
+            document.getElementById('themeBtn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                themeDropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', () => {
+                themeDropdown.classList.add('hidden');
+            });
+        });
+
+        // Theme switching handler
+        function setTheme(themeName) {
+            document.body.className = "min-h-screen flex items-center justify-center p-3 md:p-6 overflow-x-hidden selection:bg-purple-500/30";
+            if (themeName !== 'obsidian') {
+                document.body.classList.add(`theme-${themeName}`);
+            }
+            showToast(`Theme updated: ${themeName.charAt(0).toUpperCase() + themeName.slice(1)}`);
+        }
+
+        function inputNum(num) {
+            playClickSound(550);
+            if (isEvaluated) {
+                expression = num;
+                isEvaluated = false;
+            } else {
+                expression += num;
+            }
+            updateDisplay();
+        }
+
+        function inputOp(op) {
+            playClickSound(700);
+            isEvaluated = false;
+            
+            // Avoid double consecutive binary operators if inappropriate
+            const lastChar = expression.slice(-1);
+            if (['+', '-', '×', '÷'].includes(lastChar) && ['+', '-', '×', '÷'].includes(op)) {
+                expression = expression.slice(0, -1) + op;
+            } else {
+                expression += op;
+            }
+            updateDisplay();
+        }
+
+        function inputSci(func) {
+            playClickSound(800);
+            if (isEvaluated && !['^', '^2'].includes(func)) {
+                expression = func;
+                isEvaluated = false;
+            } else {
+                expression += func;
+                isEvaluated = false;
+            }
+            updateDisplay();
+        }
+
+        function inputDot() {
+            playClickSound(600);
+            const tokens = expression.split(/[\+\-\×\÷\(\)\^]/);
+            const currentNum = tokens[tokens.length - 1];
+            if (!currentNum.includes('.')) {
+                expression += '.';
+            }
+            updateDisplay();
+        }
+
+        function toggleSign() {
+            playClickSound(650);
+            if (!expression) return;
+            // Simple sign flip heuristic for active token
+            if (expression.startsWith('-(') && expression.endsWith(')')) {
+                expression = expression.slice(2, -1);
+            } else if (expression.startsWith('-')) {
+                expression = expression.slice(1);
+            } else {
+                expression = `-(${expression})`;
+            }
+            updateDisplay();
+        }
+
+        function handleClear() {
+            playClickSound(400, 'square');
+            expression = '';
+            isEvaluated = false;
+            updateDisplay();
+        }
+
+        function handleBackspace() {
+            playClickSound(450);
+            if (isEvaluated) {
+                expression = '';
+                isEvaluated = false;
+            } else {
+                expression = expression.slice(0, -1);
+            }
+            updateDisplay();
+        }
+
+        function parseExpression(str) {
+            if (!str) return '0';
+
+            // Sanitize & replace mathematical symbols for execution
+            let parsed = str
+                .replace(/×/g, '*')
+                .replace(/÷/g, '/')
+                .replace(/π/g, 'Math.PI')
+                .replace(/e/g, 'Math.E')
+                .replace(/√\(/g, 'Math.sqrt(')
+                .replace(/\^2/g, '**2')
+                .replace(/\^/g, '**');
+
+            // Handle implicit multiplication e.g., 5(2) -> 5*(2) or 3Math.PI -> 3*Math.PI
+            parsed = parsed.replace(/(\d)(\()/g, '$1*$2');
+            parsed = parsed.replace(/(\))(\d)/g, '$1*$2');
+            parsed = parsed.replace(/(\d)(Math\.PI|Math\.E)/g, '$1*$2');
+
+            // Handle percentages: e.g., 100 - 10% => 100 - (100 * 0.10) or 50 * 20% => 50 * 0.2
+            parsed = parsed.replace(/(\d+(?:\.\d+)?)\s*([\+\-])\s*(\d+(?:\.\d+)?)%/g, '$1 $2 ($1 * ($3 / 100))');
+            parsed = parsed.replace(/(\d+(?:\.\d+)?)%/g, '($1 / 100)');
+
+            return parsed;
+        }
+
+        function evaluateExpression(str) {
+            try {
+                if (!str) return '0';
+                const sanitized = parseExpression(str);
+                
+                // Security check: Only allow basic arithmetic & Math methods
+                if (/[^0-9\+\-\*\/\.\(\)\,\sMath\.sqrtPIE\*\*]/.test(sanitized)) {
+                    return 'Invalid Format';
+                }
+
+                // Evaluate math
+                const result = Function(`"use strict"; return (${sanitized})`)();
+
+                if (!isFinite(result)) {
+                    if (result === Infinity || result === -Infinity) return 'Cannot divide by zero';
+                    return 'Error';
+                }
+
+                if (isNaN(result)) return 'Invalid Format';
+
+                // Format decimals gracefully
+                return Number(Math.round(result + 'e10') + 'e-10').toString();
+            } catch (err) {
+                return 'Invalid Format';
+            }
+        }
+
+        function calculateResult() {
+            playClickSound(900, 'triangle');
+            if (!expression) return;
+
+            const res = evaluateExpression(expression);
+
+            if (res !== 'Invalid Format' && res !== 'Cannot divide by zero' && res !== 'Error') {
+                // Store calculation in history
+                addHistoryItem(expression, res);
+                expression = res;
+                isEvaluated = true;
+            } else {
+                resEl.textContent = res;
+                resEl.classList.add('text-rose-400');
+                setTimeout(() => resEl.classList.remove('text-rose-400'), 1500);
+                return;
+            }
+
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            exprEl.textContent = expression || '0';
+
+            // Auto dynamic preview if input is incomplete
+            if (expression && !isEvaluated) {
+                const preview = evaluateExpression(expression);
+                if (preview !== 'Invalid Format' && preview !== 'Cannot divide by zero' && preview !== 'Error') {
+                    resEl.textContent = preview;
+                    resEl.classList.add('opacity-50');
+                } else {
+                    resEl.textContent = expression ? '...' : '0';
+                    resEl.classList.remove('opacity-50');
+                }
+            } else {
+                resEl.textContent = expression || '0';
+                resEl.classList.remove('opacity-50');
+            }
+
+            // Auto scroll display right
+            exprEl.scrollLeft = exprEl.scrollWidth;
+            resEl.scrollLeft = resEl.scrollWidth;
+        }
+
+        function addHistoryItem(expr, res) {
+            const item = {
+                id: Date.now(),
+                expr: expr,
+                res: res,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            history.unshift(item);
+            if (history.length > 25) history.pop(); // Keep last 25 entries
+            saveHistory();
+            renderHistory();
+        }
+
+        function renderHistory() {
+            historyListEl.innerHTML = '';
+            if (history.length === 0) {
+                historyListEl.innerHTML = `
+                    <div class="text-center py-8 text-textSecondary text-xs">
+                        No previous calculations
+                    </div>
+                `;
+                return;
+            }
+
+            history.forEach(item => {
+                const el = document.createElement('div');
+                el.className = "p-3 rounded-2xl bg-white/5 hover:bg-white/10 cursor-pointer transition-all border border-white/5 group";
+                el.onclick = () => recallHistory(item.expr);
+                el.innerHTML = `
+                    <div class="flex items-center justify-between text-[11px] text-textSecondary mb-1">
+                        <span>${item.time}</span>
+                        <span class="opacity-0 group-hover:opacity-100 text-accent font-medium">Use</span>
+                    </div>
+                    <div class="text-xs font-mono text-textSecondary truncate">${item.expr}</div>
+                    <div class="text-base font-bold font-mono text-textPrimary truncate mt-0.5">= ${item.res}</div>
+                `;
+                historyListEl.appendChild(el);
+            });
+        }
+
+        function recallHistory(expr) {
+            playClickSound(600);
+            expression = expr;
+            isEvaluated = false;
+            updateDisplay();
+            showToast("Recalled expression from history");
+        }
+
+        function clearHistory() {
+            playClickSound(400);
+            history = [];
+            saveHistory();
+            renderHistory();
+            showToast("Calculation history cleared");
+        }
+
+        function saveHistory() {
+            try {
+                localStorage.setItem('calcpro_history', JSON.stringify(history));
+            } catch(e) {}
+        }
+
+        function loadHistory() {
+            try {
+                const saved = localStorage.getItem('calcpro_history');
+                if (saved) {
+                    history = JSON.parse(saved);
+                    renderHistory();
+                }
+            } catch(e) {}
+        }
+
+        // Toast Feedback Utility
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.remove('hidden');
+            toast.classList.add('toast-enter');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2500);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            // Prevent default scroll on Space/Enter
+            if (['Space', 'Enter'].includes(e.code)) {
+                e.preventDefault();
+            }
+
+            const key = e.key;
+
+            if (key >= '0' && key <= '9') inputNum(key);
+            else if (key === '+') inputOp('+');
+            else if (key === '-') inputOp('-');
+            else if (key === '*' || key === 'x') inputOp('×');
+            else if (key === '/') inputOp('÷');
+            else if (key === '.') inputDot();
+            else if (key === '%') inputOp('%');
+            else if (key === '(' || key === ')') inputOp(key);
+            else if (key === 'Enter' || key === '=') calculateResult();
+            else if (key === 'Backspace') handleBackspace();
+            else if (key === 'Escape' || key.toLowerCase() === 'c') handleClear();
+            else if (key === '^') inputSci('^');
+        });
+    </script>
+</body>
+</html>
